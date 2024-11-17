@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Cachorros e Donos</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-image: url("IMG/seamless-pattern-with-dog-paw-prints-and-dog-bones-used-for-wallpaper-backgrounds-fabric-wrapping-paper-vector.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+      thead {
+        background-color: #f4f4f4;
+      }
+      tbody tr:nth-child(odd) {
+        background-color: #fff;
+      }
+      tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      .form {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border: 1px solid #ccc;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+      .form.esconder {
+        display: none;
+      }
+      button {
+        margin: 5px 0;
+        padding: 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #ddd;
+      }
+    </style>
+  </head>
+  <body onload="buscarDados()">
+    <h1 style="color: white">Lista de Cachorros e Donos</h1>
+    <button onclick="exibirFormulario()">Adicionar um cachorro</button>
+
+    <div id="formulario" class="form esconder">
+      <label>Cachorro:</label>
+      <input name="cachorro" type="text" />
+      <br />
+      <label>Dono:</label>
+      <input name="dono" type="text" />
+      <br />
+      <label>Telefone:</label>
+      <input name="telefone" type="tel" />
+      <br />
+      <label>Email:</label>
+      <input name="email" type="email" />
+      <br />
+      <label>Imagem (URL):</label>
+      <input name="imagem" type="text" />
+      <br />
+      <button onclick="adicionarOuEditar()">Concluir</button>
+      <button onclick="ocultarFormulario()">Cancelar</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Imagem</th>
+          <th>Cachorro</th>
+          <th>Dono</th>
+          <th>Telefone</th>
+          <th>Email</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="corpoDaTabela"></tbody>
+    </table>
+
+    <script>
+      const API_URL =
+        "https://run.mocky.io/v3/ae34adce-f4c7-43a2-b6b2-0a545d275ba0";
+      var dados = []; // Armazena os dados da API
+      var editarIndex = null; // Índice do item sendo editado
+
+      function buscarDados() {
+        fetch(API_URL)
+          .then((response) => {
+            if (!response.ok)
+              throw new Error("Erro ao carregar os dados da API.");
+            return response.json();
+          })
+          .then((apiDados) => {
+            dados = apiDados; // Atualiza o array com os dados da API
+            preencherTabela();
+          })
+          .catch((error) => console.error("Erro ao buscar dados:", error));
+      }
+
+      function preencherTabela() {
+        const corpoDaTabela = document.getElementById("corpoDaTabela");
+        corpoDaTabela.innerHTML = ""; // Limpa a tabela
+
+        dados.forEach((item, index) => {
+          inserirItemNaTabela(item, index);
+        });
+      }
+
+      function inserirItemNaTabela(item, index) {
+        const corpoDaTabela = document.getElementById("corpoDaTabela");
+        corpoDaTabela.innerHTML += `
+        <tr id="linha${index}">
+          <td><img src="${item.imagem}" alt="Imagem do cachorro" width="100"></td>
+          <td>${item.nome}</td>
+          <td>${item.dono}</td>
+          <td>${item.telefone}</td>
+          <td>${item.email}</td>
+          <td>
+            <button onclick="editar(${index})">Editar</button>
+            <button onclick="excluir(${index})">Excluir</button>
+          </td>
+        </tr>
+      `;
+      }
+
+      function adicionarOuEditar() {
+        const novoCachorro = {
+          nome: document.getElementsByName("cachorro")[0].value,
+          dono: document.getElementsByName("dono")[0].value,
+          telefone: document.getElementsByName("telefone")[0].value,
+          email: document.getElementsByName("email")[0].value,
+          imagem: document.getElementsByName("imagem")[0].value,
+        };
+
+        if (editarIndex === null) {
+          dados.push(novoCachorro); // Adiciona novo item
+        } else {
+          dados[editarIndex] = novoCachorro; // Atualiza item existente
+          editarIndex = null;
+        }
+
+        preencherTabela();
+        limparFormulario();
+        ocultarFormulario();
+      }
+
+      function editar(index) {
+        editarIndex = index;
+        const item = dados[index];
+
+        document.getElementsByName("cachorro")[0].value = item.nome;
+        document.getElementsByName("dono")[0].value = item.dono;
+        document.getElementsByName("telefone")[0].value = item.telefone;
+        document.getElementsByName("email")[0].value = item.email;
+        document.getElementsByName("imagem")[0].value = item.imagem;
+
+        exibirFormulario();
+      }
+
+      function excluir(index) {
+        dados.splice(index, 1); // Remove o item do array
+        preencherTabela();
+      }
+
+      function limparFormulario() {
+        document.getElementsByName("cachorro")[0].value = "";
+        document.getElementsByName("dono")[0].value = "";
+        document.getElementsByName("telefone")[0].value = "";
+        document.getElementsByName("email")[0].value = "";
+        document.getElementsByName("imagem")[0].value = "";
+      }
+
+      function ocultarFormulario() {
+        document.getElementById("formulario").classList.add("esconder");
+      }
+
+      function exibirFormulario() {
+        document.getElementById("formulario").classList.remove("esconder");
+      }
+    </script>
+  </body>
+</html>
